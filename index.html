@@ -4,7 +4,6 @@
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>Calendar App Vanilla JS</title>
-
 		<link rel="stylesheet" href="style.css">
 	</head>
 	<body>
@@ -28,31 +27,29 @@
 			</div>
 			<div id="calendar"></div>
 		</div>
-
+		
 		<div id="newEventModal">
 			<h2>New Event</h2>
-
+			
 			<input id="eventTitleInput" placeholder="Event Title"/>
-
+			
 			<button id="saveButton">Save</button>
 			<button id="cancelButton">Cancel</button>
-
+			
 		</div>
-
+		
 		<div id="deleteEventModal">
 			<h2>Event</h2>
-
+			
 			<input id="eventText" placeholder="Event Title"/>
-
+			
 			<button id="deleteButton">Delete</button>
 			<button id="closeButton">Close</button>
-
+			
 		</div>
-
+		
 		<div id="modalBackDrop"></div>
-
-		<script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
-    	<script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
 		<script src="./script.js"></script>
+		<script src="https://accounts.google.com/gsi/client" onload="initClient()" async defer></script>
 	</body>
 </html>

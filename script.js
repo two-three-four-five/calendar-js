@@ -2,6 +2,9 @@ let nav = 0; // current month - 1
 let clicked = null; // clicked date
 let events = [];
 let year, month, date;
+let client;
+let access_token;
+let googleResponse;
 
 const calendar = document.getElementById("calendar");
 const newEventModal = document.getElementById("newEventModal");
@@ -18,49 +21,102 @@ const weekdays = [
   "Saturday",
 ];
 
-const CLIENT_ID = "";
-const API_KEY = "";
+const CLIENT_ID = "1039492430904-8q81bvrg1bt8fslph292sfiqkp58a9t3.apps.googleusercontent.com";
 
 // Authorization scopes required by the API; multiple scopes can be
 // included, separated by spaces.
 const SCOPES = "https://www.googleapis.com/auth/calendar.readonly";
 
-// Discovery doc URL for APIs used by the quickstart
-const DISCOVERY_DOC =
-  "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest";
 
-/**
- * Callback after Google Identity Services are loaded.
- */
-function gisLoaded() {
-  tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: CLIENT_ID,
-    scope: SCOPES,
-    callback: "", // defined later
-  });
-  gisInited = true;
-  // maybeEnableButtons();
+function initClient() {
+	client = google.accounts.oauth2.initTokenClient({
+		client_id: CLIENT_ID,
+		scope: SCOPES,
+		callback: (tokenResponse) => {
+			access_token = tokenResponse.access_token;
+		},
+		auto_select: true,
+	});
 }
 
-/**
- * Callback after api.js is loaded.
- */
-function gapiLoaded() {
-  gapi.load("client", initializeGapiClient);
+function getToken() {
+	client.requestAccessToken();
 }
 
-/**
- * Callback after the API client is loaded. Loads the
- * discovery doc to initialize the API.
- */
-async function initializeGapiClient() {
-  await gapi.client.init({
-    apiKey: API_KEY,
-    discoveryDocs: [DISCOVERY_DOC],
-  });
-  gapiInited = true;
-  // maybeEnableButtons();
+function revokeToken() {
+	google.accounts.oauth2.revoke(access_token, () => {console.log('access token revoked')});
 }
+
+
+function updateDate() {
+	const dt = new Date();
+
+	if (nav !== 0) {
+	  dt.setMonth(new Date().getMonth() + nav);
+	}
+  
+	day = dt.getDate();
+	month = dt.getMonth();
+	year = dt.getFullYear();
+}
+
+
+function loadCalendar() {
+	if (client === undefined || access_token === undefined)
+		return;
+
+	let xhr = new XMLHttpRequest();
+
+	let timeMin = new Date(year, month, 1).toISOString();
+	let timeMax = new Date(year, month + 1, 0).toISOString();
+
+	// URL에 쿼리 파라미터 추가
+	let url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&orderBy=startTime&showDeleted=false&singleEvents=true`; //!!!!!!!!
+	console.log(url);
+	xhr.open('GET', url);
+	xhr.setRequestHeader('Authorization', 'Bearer ' + access_token);
+
+	xhr.onreadystatechange = function() {
+		// 요청이 완료되었는지 확인
+		if (xhr.readyState === XMLHttpRequest.DONE) {
+			// HTTP 요청이 성공적으로 완료되었는지 확인
+			if (xhr.status === 200) {
+				// 성공적으로 응답을 받았을 경우, 응답을 파싱하여 처리
+				let response = JSON.parse(xhr.responseText);
+				
+				console.log('Calendar events:', response);
+
+				const googleEvents = response.items;
+				googleResponse = response.items;
+				if (!googleEvents || googleEvents.length == 0) {
+					// document.getElementById('content').innerText = 'No googleEvents found.';
+					return;
+				}
+				let modifiedEvents = googleEvents.map(event => ({
+					date: new Date(event.start.dateTime || event.start.date).toLocaleDateString("en-us", {
+					  year: "numeric",
+					  month: "numeric",
+					  day: "numeric",
+					}),
+					title: event.summary,
+				  }));
+
+				for (let key in modifiedEvents) {
+					events.push(modifiedEvents[key]);
+				}
+
+			  load();
+
+				// 여기에서 응답을 기반으로 UI를 업데이트하거나 다른 처리를 수행
+			} else {
+				// 오류 처리
+				console.error('Failed to load calendar events, status: ' + xhr.status);
+			}
+		}
+	};
+	xhr.send();
+}
+
 
 function openModal(date) {
   clicked = date;
@@ -77,22 +133,12 @@ function openModal(date) {
 }
 
 function load() {
-  console.log(events);
-  events = [];
-  const dt = new Date();
-
-  if (nav !== 0) {
-    dt.setMonth(new Date().getMonth() + nav);
-  }
-
-  day = dt.getDate();
-  month = dt.getMonth();
-  year = dt.getFullYear();
-  listUpcomingEvents().then(loadEventsToCalendar);
+	loadEventsToCalendar();
+	console.log("load");
 }
 
 function loadEventsToCalendar() {
-  const dt = new Date();
+  const dt = new Date(year, month, day);
   const firstDayOfMonth = new Date(year, month, 1);
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const dateString = firstDayOfMonth.toLocaleDateString("en-us", {
@@ -176,78 +222,23 @@ function deleteEvent() {
   closeModal();
 }
 
-let tokenClient;
-function handleAuthClick() {
-  tokenClient.callback = async (resp) => {
-    if (resp.error !== undefined) {
-      throw resp;
-    }
-    await listUpcomingEvents();
-  };
-
-  if (gapi.client.getToken() === null) {
-    // Prompt the user to select a Google Account and ask for consent to share their data
-    // when establishing a new session.
-    tokenClient.requestAccessToken({ prompt: "consent" });
-  } else {
-    // Skip display of account chooser and consent dialog for an existing session.
-    tokenClient.requestAccessToken({ prompt: "" });
-  }
-}
-
-async function listUpcomingEvents() {
-  let response;
-  try {
-    const request = {
-      calendarId: "primary",
-      timeMin: new Date(year, month, 1).toISOString(),
-      timeMax: new Date(year, month + 1, 0).toISOString(),
-      showDeleted: false,
-      singleEvents: true,
-      orderBy: "startTime",
-    };
-    response = await gapi.client.calendar.events.list(request);
-  } catch (err) {
-    console.log(err.message);
-    return;
-  }
-
-  const googleEvents = response.result.items;
-  if (!googleEvents || googleEvents.length == 0) {
-    // document.getElementById('content').innerText = 'No googleEvents found.';
-    return;
-  }
-
-  // Flatten to string to display
-
-  const output = googleEvents.reduce((str, event) =>
-    events.push({
-      date: new Date(
-        `${event.start.dateTime || event.start.date}`
-      ).toLocaleDateString("en-us", {
-        year: "numeric",
-        month: "numeric",
-        day: "numeric",
-      }),
-      title: event.summary,
-    })
-  );
-  // document.getElementById('content').innerText = output;
-}
-
 function initButtons() {
   document.getElementById("nextButton").addEventListener("click", () => {
     nav++;
-    load();
-  });
-  document.getElementById("backButton").addEventListener("click", () => {
-    nav--;
-    load();
+	events = [];
+	updateDate();  
+	loadCalendar();
+	load();
+});
+document.getElementById("backButton").addEventListener("click", () => {
+	nav--;
+	events = [];
+	updateDate();  
+	loadCalendar();
+	load();
   });
 
-  document
-    .getElementById("loginButton")
-    .addEventListener("click", handleAuthClick);
+  document.getElementById("loginButton").addEventListener("click", getToken);
 
   document.getElementById("saveButton").addEventListener("click", saveEvent);
   document.getElementById("cancelButton").addEventListener("click", closeModal);
@@ -259,4 +250,5 @@ function initButtons() {
 }
 
 initButtons();
+updateDate();  
 load();
