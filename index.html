@@ -12,6 +12,7 @@
 			<div id="header">
 				<div id = "monthDisplay"></div>
 				<div>
+					<button id="loginButton">G Login</button>
 					<button id="backButton">Back</button>
 					<button id="nextButton">Next</button>
 				</div>
@@ -50,6 +51,8 @@
 
 		<div id="modalBackDrop"></div>
 
+		<script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
+    	<script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
 		<script src="./script.js"></script>
 	</body>
 </html>
