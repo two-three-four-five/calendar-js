@@ -34,6 +34,11 @@ function initClient() {
 		scope: SCOPES,
 		callback: (tokenResponse) => {
 			access_token = tokenResponse.access_token;
+
+			localStorage.setItem("access_token", access_token);
+
+			console.log("got access token");
+			loadCalendar();
 		},
 		auto_select: true,
 	});
@@ -62,8 +67,19 @@ function updateDate() {
 
 
 function loadCalendar() {
+
+	if (localStorage.getItem("access_token")) {
+		access_token = localStorage.getItem("access_token");
+	}
+
 	if (client === undefined || access_token === undefined)
+	{
+        if (client === undefined)
+			console.log("Client not set.");
+        if (access_token === undefined)
+			console.log("access token not set.");
 		return;
+	}
 
 	let xhr = new XMLHttpRequest();
 
@@ -249,6 +265,8 @@ document.getElementById("backButton").addEventListener("click", () => {
   document.getElementById("closeButton").addEventListener("click", closeModal);
 }
 
+initClient();
 initButtons();
 updateDate();  
 load();
+loadCalendar();
