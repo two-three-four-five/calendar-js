@@ -168,7 +168,7 @@ function loadEventsToCalendar() {
 
   document.getElementById("monthDisplay").innerText = `${dt.toLocaleDateString(
     "en-us",
-    { month: "long" }
+    { month: "short" }
   )} ${year}`;
 
   calendar.innerHTML = "";
