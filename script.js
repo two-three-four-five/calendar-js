@@ -6,7 +6,7 @@ let client;
 let access_token;
 let googleResponse;
 
-const calendar = document.getElementById("calendar");
+const dayGrid = document.getElementById("dayGrid");
 const newEventModal = document.getElementById("newEventModal");
 const deleteEventModal = document.getElementById("deleteEventModal");
 const backDrop = document.getElementById("modalBackDrop");
@@ -21,118 +21,119 @@ const weekdays = [
   "Saturday",
 ];
 
-const CLIENT_ID = "1039492430904-8q81bvrg1bt8fslph292sfiqkp58a9t3.apps.googleusercontent.com";
+const CLIENT_ID =
+  "1039492430904-8q81bvrg1bt8fslph292sfiqkp58a9t3.apps.googleusercontent.com";
 
 // Authorization scopes required by the API; multiple scopes can be
 // included, separated by spaces.
 const SCOPES = "https://www.googleapis.com/auth/calendar.readonly";
 
-
 function initClient() {
-	client = google.accounts.oauth2.initTokenClient({
-		client_id: CLIENT_ID,
-		scope: SCOPES,
-		callback: (tokenResponse) => {
-			access_token = tokenResponse.access_token;
+  client = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPES,
+    callback: (tokenResponse) => {
+      access_token = tokenResponse.access_token;
 
-			localStorage.setItem("access_token", access_token);
+      localStorage.setItem("access_token", access_token);
 
-			console.log("got access token");
-			loadCalendar();
-		},
-		auto_select: true,
-	});
+      console.log("got access token");
+      loadCalendar();
+    },
+    auto_select: true,
+  });
 }
 
 function getToken() {
-	client.requestAccessToken();
+  client.requestAccessToken();
 }
 
 function revokeToken() {
-	google.accounts.oauth2.revoke(access_token, () => {console.log('access token revoked')});
+  google.accounts.oauth2.revoke(access_token, () => {
+    console.log("access token revoked");
+  });
 }
-
 
 function updateDate() {
-	const dt = new Date();
+  const dt = new Date();
 
-	if (nav !== 0) {
-	  dt.setMonth(new Date().getMonth() + nav);
-	}
-  
-	day = dt.getDate();
-	month = dt.getMonth();
-	year = dt.getFullYear();
+  if (nav !== 0) {
+    dt.setMonth(new Date().getMonth() + nav);
+  }
+
+  day = dt.getDate();
+  month = dt.getMonth();
+  year = dt.getFullYear();
 }
-
 
 function loadCalendar() {
+  if (localStorage.getItem("access_token")) {
+    access_token = localStorage.getItem("access_token");
+  }
 
-	if (localStorage.getItem("access_token")) {
-		access_token = localStorage.getItem("access_token");
-	}
+  if (client === undefined || access_token === undefined) {
+    if (client === undefined) console.log("Client not set.");
+    if (access_token === undefined) console.log("access token not set.");
+    return;
+  }
 
-	if (client === undefined || access_token === undefined)
-	{
-        if (client === undefined)
-			console.log("Client not set.");
-        if (access_token === undefined)
-			console.log("access token not set.");
-		return;
-	}
+  let xhr = new XMLHttpRequest();
 
-	let xhr = new XMLHttpRequest();
+  let timeMin = new Date(year, month, 1).toISOString();
+  let timeMax = new Date(year, month + 1, 0).toISOString();
 
-	let timeMin = new Date(year, month, 1).toISOString();
-	let timeMax = new Date(year, month + 1, 0).toISOString();
+  // URL에 쿼리 파라미터 추가
+  let url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${encodeURIComponent(
+    timeMin
+  )}&timeMax=${encodeURIComponent(
+    timeMax
+  )}&orderBy=startTime&showDeleted=false&singleEvents=true`; //!!!!!!!!
+  console.log(url);
+  xhr.open("GET", url);
+  xhr.setRequestHeader("Authorization", "Bearer " + access_token);
 
-	// URL에 쿼리 파라미터 추가
-	let url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&orderBy=startTime&showDeleted=false&singleEvents=true`; //!!!!!!!!
-	console.log(url);
-	xhr.open('GET', url);
-	xhr.setRequestHeader('Authorization', 'Bearer ' + access_token);
+  xhr.onreadystatechange = function () {
+    // 요청이 완료되었는지 확인
+    if (xhr.readyState === XMLHttpRequest.DONE) {
+      // HTTP 요청이 성공적으로 완료되었는지 확인
+      if (xhr.status === 200) {
+        // 성공적으로 응답을 받았을 경우, 응답을 파싱하여 처리
+        let response = JSON.parse(xhr.responseText);
 
-	xhr.onreadystatechange = function() {
-		// 요청이 완료되었는지 확인
-		if (xhr.readyState === XMLHttpRequest.DONE) {
-			// HTTP 요청이 성공적으로 완료되었는지 확인
-			if (xhr.status === 200) {
-				// 성공적으로 응답을 받았을 경우, 응답을 파싱하여 처리
-				let response = JSON.parse(xhr.responseText);
-				
-				console.log('Calendar events:', response);
+        console.log("Calendar events:", response);
 
-				const googleEvents = response.items;
-				googleResponse = response.items;
-				if (!googleEvents || googleEvents.length == 0) {
-					// document.getElementById('content').innerText = 'No googleEvents found.';
-					return;
-				}
-				let modifiedEvents = googleEvents.map(event => ({
-					date: new Date(event.start.dateTime || event.start.date).toLocaleDateString("en-us", {
-					  year: "numeric",
-					  month: "numeric",
-					  day: "numeric",
-					}),
-					title: event.summary,
-				  }));
+        const googleEvents = response.items;
+        googleResponse = response.items;
+        if (!googleEvents || googleEvents.length == 0) {
+          // document.getElementById('content').innerText = 'No googleEvents found.';
+          return;
+        }
+        let modifiedEvents = googleEvents.map((event) => ({
+          date: new Date(
+            event.start.dateTime || event.start.date
+          ).toLocaleDateString("en-us", {
+            year: "numeric",
+            month: "numeric",
+            day: "numeric",
+          }),
+          title: event.summary,
+        }));
 
-				for (let key in modifiedEvents) {
-					events.push(modifiedEvents[key]);
-				}
+        for (let key in modifiedEvents) {
+          events.push(modifiedEvents[key]);
+        }
 
-			  load();
+        load();
 
-				// 여기에서 응답을 기반으로 UI를 업데이트하거나 다른 처리를 수행
-			} else {
-				// 오류 처리
-				console.error('Failed to load calendar events, status: ' + xhr.status);
-			}
-		}
-	};
-	xhr.send();
+        // 여기에서 응답을 기반으로 UI를 업데이트하거나 다른 처리를 수행
+      } else {
+        // 오류 처리
+        console.error("Failed to load calendar events, status: " + xhr.status);
+      }
+    }
+  };
+  xhr.send();
 }
-
 
 function openModal(date) {
   clicked = date;
@@ -149,8 +150,8 @@ function openModal(date) {
 }
 
 function load() {
-	loadEventsToCalendar();
-	console.log("load");
+  loadEventsToCalendar();
+  console.log("load");
 }
 
 function loadEventsToCalendar() {
@@ -171,7 +172,7 @@ function loadEventsToCalendar() {
     { month: "short" }
   )} ${year}`;
 
-  calendar.innerHTML = "";
+  dayGrid.innerHTML = "";
 
   for (let i = 1; i <= paddingDays + daysInMonth; i++) {
     const daySquare = document.createElement("div");
@@ -201,7 +202,7 @@ function loadEventsToCalendar() {
       daySquare.classList.add("padding");
     }
 
-    calendar.appendChild(daySquare);
+    dayGrid.appendChild(daySquare);
   }
   console.log(paddingDays);
   console.log(dateString);
@@ -241,17 +242,17 @@ function deleteEvent() {
 function initButtons() {
   document.getElementById("nextButton").addEventListener("click", () => {
     nav++;
-	events = [];
-	updateDate();  
-	loadCalendar();
-	load();
-});
-document.getElementById("backButton").addEventListener("click", () => {
-	nav--;
-	events = [];
-	updateDate();  
-	loadCalendar();
-	load();
+    events = [];
+    updateDate();
+    loadCalendar();
+    load();
+  });
+  document.getElementById("backButton").addEventListener("click", () => {
+    nav--;
+    events = [];
+    updateDate();
+    loadCalendar();
+    load();
   });
 
   document.getElementById("loginButton").addEventListener("click", getToken);
@@ -267,6 +268,6 @@ document.getElementById("backButton").addEventListener("click", () => {
 
 initClient();
 initButtons();
-updateDate();  
+updateDate();
 load();
 loadCalendar();

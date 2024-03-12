@@ -1,163 +1,194 @@
 :root {
-	--primary-color : #3C4C55;
-	--background-color : #ffffff;
-	--current-color: #E57373;
+  --primary-color: #3c4c55;
+  --background-color: #ffffff;
+  --current-color: #e57373;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap");
+
+html {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
 
 body {
-	display: flex;
-	margin-top: 50px;
-	justify-content: center;
-	background-color: #ffffff;
-	font-family: "Roboto", sans-serif;
-	font-weight: 300;
-	font-style: normal;
-  }
-  button {
-	width: 75px;
-	cursor: pointer;
-	box-shadow: 0px 0px 2px gray;
-	border: none;
-	outline: none;
-	padding: 5px;
-	border-radius: 5px;
-	color: white;
-  }
-  
-  #header {
-	padding: 10px;
-	color: #d36c6c;
-	font-size: 26px;
-	font-family: sans-serif;
-	display: flex;
-	justify-content: space-between;
-  }
-  #header button {
-	background-color:#92a1d1;
-  }
-  #container {
-	width: 770px;
-  }
+  display: flex;
+  flex-direction: column;
+  /* align-items: stretch; */
+  margin-top: 24px;
+  /* margin-bottom: 24px;
+  margin-left: 16px;
+  margin-right: 16px; */
+  margin: 0; /* Remove default margins */
+  padding: 0; /* Remove default padding */
+  width: 100%;
+  /* height: 100%; */
+  min-height: 100%;
+  background-color: #ffffff;
 
+  font-family: "Roboto", sans-serif;
+  font-weight: 300;
+  font-style: normal;
+}
+
+button {
+  width: 75px;
+  cursor: pointer;
+  box-shadow: 0px 0px 2px gray;
+  border: none;
+  outline: none;
+  padding: 5px;
+  border-radius: 5px;
+  color: white;
+}
+
+#header {
+  padding: 10px;
+  color: #d36c6c;
+  font-size: 26px;
+  font-family: sans-serif;
+  display: flex;
+  justify-content: space-between;
+}
+#header button {
+  background-color: #92a1d1;
+}
+
+#contents {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  /* height: 100%; */
+}
+
+#calendar {
+  width: 80%;
+}
+
+#info {
+  width: 20%;
+  background-color: gray;
+}
 
 /* weekdays */
 
 #weekdays {
-	width: 100%;
-	display: flex;
-	color: var(--primary-color);
-	font-size: small;
+  width: 100%;
+  display: flex;
+  color: var(--primary-color);
+  font-size: small;
 }
 
 #weekdays div {
-	width: 100%;
-	padding-left: 8px;
-	padding-right: 8px;
-	padding-top: 4px;
-	padding-bottom: 4px;
-
+  width: 100%;
+  padding-left: 8px;
+  padding-right: 8px;
+  padding-top: 4px;
+  padding-bottom: 4px;
 }
 
-#calendar {
-	/* width: 100%;
+#dayGrid {
+  /* width: 100%;
 	margin: auto;
 	display: flex;
 	flex-wrap: wrap; */
-	display: grid;
-    grid-template-columns: repeat(7, 1fr); /* Creates 7 columns */
-    width: 100%;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr); /* Creates 7 columns */
+  width: 100%;
 }
 
 .day {
-	width: 100%;
-	height: 100px;
-	
-	padding: 0px;
-	margin: 0px;
+  width: 100%;
+  height: 100%;
 
-	cursor: pointer;
+  padding: 0px;
+  margin: 0px;
 
-	/* box-sizing: border-box; */
-	/* box-shadow: 0px 0px 3px #CBD4C2; */
-	background-color: white;
-	display: flex;
-	flex-direction: column;
-	justify-content: first baseline;
+  cursor: pointer;
+
+  /* box-sizing: border-box; */
+  /* box-shadow: 0px 0px 3px #CBD4C2; */
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: first baseline;
 }
 
 .day:hover {
-	background-color: #e8faed;
+  background-color: #e8faed;
 }
-  
+
 .day + #currentDay {
-	background-color:#e8f4fa;
-	background-color: #FFC0CB; /* 배경색 설정 */
+  background-color: #e8f4fa;
+  background-color: #ffc0cb; /* 배경색 설정 */
   border-radius: 4px; /* 테두리 반경 설정 */
 }
 
 .dayNumber + #currentDay {
-	background-color: var(--current-color);
-	color: white
+  background-color: var(--current-color);
+  color: white;
 }
 
 .event {
-	font-size: 10px;
-	padding: 3px;
-	background-color: #58bae4;
-	color: white;
-	border-radius: 5px;
-	max-height: 55px;
-	overflow: hidden;
+  font-size: 10px;
+  padding: 3px;
+  background-color: #58bae4;
+  color: white;
+  border-radius: 5px;
+  max-height: 55px;
+  overflow: hidden;
 }
 .padding {
-cursor: default !important;
-background-color: #FFFCFF !important;
-box-shadow: none !important;
+  cursor: default !important;
+  background-color: #fffcff !important;
+  box-shadow: none !important;
 }
-  #newEventModal, #deleteEventModal {
-	display: none;
-	z-index: 20;
-	padding: 25px;	
-	background-color: #e8f4fa;
-	box-shadow: 0px 0px 3px black;
-	border-radius: 5px;
-	width: 350px;
-	top: 100px;
-	left: calc(50% - 175px);
-	position: absolute;
-	font-family: sans-serif;
-  }
-  #eventTitleInput {
-	padding: 10px;
-	width: 100%;
-	box-sizing: border-box;
-	margin-bottom: 25px;
-	border-radius: 3px;
-	outline: none;
-	border: none;
-	box-shadow: 0px 0px 3px gray;
-  }
-  #eventTitleInput.error {
-	border: 2px solid red;
-  }
-  #cancelButton, #deleteButton {
-	background-color: #d36c6c;
-  }
-  #saveButton, #closeButton {
-	background-color: #92a1d1;
-  }
-  #eventText {
-	font-size: 14px;
-  }
-  #modalBackDrop {
-	display: none;
-	top: 0px;
-	left: 0px;
-	z-index: 10;
-	width: 100vw;
-	height: 100vh;
-	position: absolute;
-	background-color: rgba(0,0,0,0.8);
-  }
+#newEventModal,
+#deleteEventModal {
+  display: none;
+  z-index: 20;
+  padding: 25px;
+  background-color: #e8f4fa;
+  box-shadow: 0px 0px 3px black;
+  border-radius: 5px;
+  width: 350px;
+  top: 100px;
+  left: calc(50% - 175px);
+  position: absolute;
+  font-family: sans-serif;
+}
+#eventTitleInput {
+  padding: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 25px;
+  border-radius: 3px;
+  outline: none;
+  border: none;
+  box-shadow: 0px 0px 3px gray;
+}
+#eventTitleInput.error {
+  border: 2px solid red;
+}
+#cancelButton,
+#deleteButton {
+  background-color: #d36c6c;
+}
+#saveButton,
+#closeButton {
+  background-color: #92a1d1;
+}
+#eventText {
+  font-size: 14px;
+}
+#modalBackDrop {
+  display: none;
+  top: 0px;
+  left: 0px;
+  z-index: 10;
+  width: 100vw;
+  height: 100vh;
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.8);
+}
