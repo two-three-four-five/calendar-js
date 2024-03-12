@@ -1,55 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Calendar App Vanilla JS</title>
-		<link rel="stylesheet" href="style.css">
-	</head>
-	<body>
-		<div id="container">
-			<div id="header">
-				<div id = "monthDisplay"></div>
-				<div>
-					<button id="loginButton">G Login</button>
-					<button id="backButton">Back</button>
-					<button id="nextButton">Next</button>
-				</div>
-			</div>
-			<div id="weekdays">
-				<div>Monday</div>
-				<div>Monday</div>
-				<div>Tuesday</div>
-				<div>Wednesday</div>
-				<div>Thursday</div>
-				<div>Friday</div>
-				<div>Saturday</div>
-			</div>
-			<div id="calendar"></div>
-		</div>
-		
-		<div id="newEventModal">
-			<h2>New Event</h2>
-			
-			<input id="eventTitleInput" placeholder="Event Title"/>
-			
-			<button id="saveButton">Save</button>
-			<button id="cancelButton">Cancel</button>
-			
-		</div>
-		
-		<div id="deleteEventModal">
-			<h2>Event</h2>
-			
-			<input id="eventText" placeholder="Event Title"/>
-			
-			<button id="deleteButton">Delete</button>
-			<button id="closeButton">Close</button>
-			
-		</div>
-		
-		<div id="modalBackDrop"></div>
-		<script src="./script.js" defer></script>
-		<script src="https://accounts.google.com/gsi/client"></script>
-	</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Calendar App Vanilla JS</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="header">
+      <div id="monthDisplay"></div>
+      <div>
+        <button id="loginButton">G Login</button>
+        <button id="backButton">Back</button>
+        <button id="nextButton">Next</button>
+      </div>
+    </div>
+    <div id="contents">
+      <div id="calendar">
+        <div id="weekdays">
+          <div>S</div>
+          <div>M</div>
+          <div>T</div>
+          <div>W</div>
+          <div>T</div>
+          <div>F</div>
+          <div>S</div>
+        </div>
+        <div id="dayGrid"></div>
+      </div>
+      <div id="info"></div>
+    </div>
+
+    <div id="newEventModal">
+      <h2>New Event</h2>
+
+      <input id="eventTitleInput" placeholder="Event Title" />
+
+      <button id="saveButton">Save</button>
+      <button id="cancelButton">Cancel</button>
+    </div>
+    <div id="deleteEventModal">
+      <h2>Event</h2>
+
+      <input id="eventText" placeholder="Event Title" />
+
+      <button id="deleteButton">Delete</button>
+      <button id="closeButton">Close</button>
+    </div>
+    <div id="modalBackDrop"></div>
+    <script src="./script.js" defer></script>
+    <script src="https://accounts.google.com/gsi/client"></script>
+  </body>
 </html>
