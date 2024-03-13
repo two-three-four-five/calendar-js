@@ -1,6 +1,8 @@
 let nav = 0; // current month - 1
 let clicked = null; // clicked date
-let events = [];
+let dateTimeEvents = [];
+let dateEvents = [];
+let tasks = [];
 let year, month, date;
 let client;
 let access_token;
@@ -79,8 +81,8 @@ function loadCalendar() {
 
   let xhr = new XMLHttpRequest();
 
-  let timeMin = new Date(year, month, 1).toISOString();
-  let timeMax = new Date(year, month + 1, 0).toISOString();
+  let timeMin = new Date(year, month - 1, 1).toISOString();
+  let timeMax = new Date(year, month + 2, 0).toISOString();
 
   // URL에 쿼리 파라미터 추가
   let url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${encodeURIComponent(
@@ -109,25 +111,32 @@ function loadCalendar() {
           return;
         }
         let modifiedEvents = googleEvents.map((event) => ({
-          date: new Date(
-            event.start.dateTime || event.start.date
-          ).toLocaleDateString("en-us", {
-            year: "numeric",
-            month: "numeric",
-            day: "numeric",
-          }),
           title: event.summary,
+          isAllDay: event.start.dateTime === undefined,
+          startDate: !event.start.dateTime
+            ? new Date(event.start.date).toLocaleDateString("en-us")
+            : new Date(event.start.dateTime).toLocaleDateString("en-us"),
+          endDate: !event.start.dateTime
+            ? new Date(event.end.date).toLocaleDateString("en-us")
+            : new Date(event.end.dateTime).toLocaleDateString("en-us"),
+          startDateTime: event.start.dateTime
+            ? new Date(event.end.dateTime).toLocaleString("en-us")
+            : undefined,
+          endDateTime: event.start.dateTime
+            ? new Date(event.end.dateTime).toLocaleString("en-us")
+            : undefined,
         }));
 
         for (let key in modifiedEvents) {
-          events.push(modifiedEvents[key]);
+          if (modifiedEvents[key].isAllDay) {
+            dateEvents.push(modifiedEvents[key]);
+          } else {
+            dateTimeEvents.push(modifiedEvents[key]);
+          }
         }
 
         load();
-
-        // 여기에서 응답을 기반으로 UI를 업데이트하거나 다른 처리를 수행
       } else {
-        // 오류 처리
         console.error("Failed to load calendar events, status: " + xhr.status);
       }
     }
@@ -135,109 +144,150 @@ function loadCalendar() {
   xhr.send();
 }
 
-function openModal(date) {
-  clicked = date;
+// function openModal(date) {
+//   clicked = date;
 
-  const eventForDay = events.find((e) => e.date == clicked);
+//   const eventForDay = events.find((e) => e.date == clicked);
 
-  if (eventForDay) {
-    document.getElementById("eventText").innerText = eventForDay.title;
-    deleteEventModal.style.display = "block";
-  } else {
-    newEventModal.style.display = "block";
-  }
-  backDrop.style.display = "block";
-}
+//   if (eventForDay) {
+//     document.getElementById("eventText").innerText = eventForDay.title;
+//     deleteEventModal.style.display = "block";
+//   } else {
+//     newEventModal.style.display = "block";
+//   }
+//   backDrop.style.display = "block";
+// }
 
 function load() {
-  loadEventsToCalendar();
-  console.log("load");
-}
-
-function loadEventsToCalendar() {
   const dt = new Date(year, month, day);
   const firstDayOfMonth = new Date(year, month, 1);
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const dateString = firstDayOfMonth.toLocaleDateString("en-us", {
-    weekday: "long",
-    year: "numeric",
-    month: "numeric",
-    day: "numeric",
-  });
-
-  const paddingDays = weekdays.indexOf(dateString.split(", ")[0]);
+  const daysInThisMonth = new Date(year, month + 1, 0).getDate();
+  const daysInLastMonth = new Date(year, month, 0).getDate();
 
   document.getElementById("monthDisplay").innerText = `${dt.toLocaleDateString(
     "en-us",
     { month: "short" }
   )} ${year}`;
 
+  const paddingDays = weekdays.indexOf(
+    firstDayOfMonth.toLocaleDateString("en-us", {
+      weekday: "long",
+    })
+  );
+
   dayGrid.innerHTML = "";
 
-  for (let i = 1; i <= paddingDays + daysInMonth; i++) {
+  let dayDisplayed = 0;
+
+  /* last month */
+  for (; dayDisplayed < paddingDays; dayDisplayed++) {
+    const daySquare = document.createElement("div");
+    daySquare.classList.add("paddingDay");
+    daySquare.innerText = daysInLastMonth - paddingDays + dayDisplayed + 1;
+    dayGrid.appendChild(daySquare);
+  }
+
+  /* this month */
+  for (; dayDisplayed - paddingDays < daysInThisMonth; dayDisplayed++) {
+    const thisDay = dayDisplayed - paddingDays + 1;
     const daySquare = document.createElement("div");
     daySquare.classList.add("day");
+    daySquare.innerText = thisDay;
 
-    const dayString = `${month + 1}/${i - paddingDays}/${year}`;
-    if (i > paddingDays) {
-      daySquare.innerText = i - paddingDays;
-
-      const eventsForDay = events.filter((e) => e.date === dayString);
-
-      if (i - paddingDays === day && nav === 0) {
-        daySquare.id = "currentDay";
-      }
-
-      eventsForDay.forEach((eventForDay) => {
-        const eventDiv = document.createElement("div");
-        eventDiv.classList.add("event");
-        eventDiv.innerText = eventForDay.title;
-        daySquare.appendChild(eventDiv);
-      });
-
-      daySquare.addEventListener("click", () =>
-        openModal(`${month + 1}/${i - paddingDays}/${year}`)
-      );
-    } else {
-      daySquare.classList.add("padding");
+    if (dayDisplayed - paddingDays === day && nav === 0) {
+      daySquare.id = "currentDay";
     }
+
+    const thisDateString = `${month + 1}/${thisDay}/${year}`;
+    const dateEventsForDay = dateEvents.filter(
+      (e) => e.startDate <= thisDateString && thisDateString < e.endDate
+    );
+
+    // const dateTimeString = `${month + 1}/${thisDay}/${year}`;
+    const dateTimeEventsForDay = dateTimeEvents.filter(
+      (e) => e.startDate <= thisDateString && thisDateString <= e.endDate
+    );
+
+    let eventsDisplayed = 0;
+    let eventsNotDisplayed = 0;
+
+    for (const key in dateEventsForDay) {
+      if (eventsDisplayed >= 4) {
+        ++eventsNotDisplayed;
+      } else {
+        const eventDiv = document.createElement("div");
+        eventDiv.classList.add("dateEvent");
+        eventDiv.innerText = dateEventsForDay[key].title;
+        daySquare.appendChild(eventDiv);
+        ++eventsDisplayed;
+      }
+    }
+
+    for (const key in dateTimeEventsForDay) {
+      if (eventsDisplayed >= 4) {
+        ++eventsNotDisplayed;
+      } else {
+        const eventDiv = document.createElement("div");
+        eventDiv.classList.add("dateTimeEvent");
+        eventDiv.innerText = dateTimeEventsForDay[key].title;
+        daySquare.appendChild(eventDiv);
+        ++eventsDisplayed;
+      }
+    }
+
+    if (eventsNotDisplayed) {
+      const eventDiv = document.createElement("div");
+      eventDiv.classList.add("moreEvent");
+      eventDiv.innerText = "+ " + eventsNotDisplayed + " more";
+      daySquare.appendChild(eventDiv);
+    }
+
+    // daySquare.addEventListener("click", () =>
+    //   openModal(`${month + 1}/${thisDay}/${year}`)
+    // );
 
     dayGrid.appendChild(daySquare);
   }
-  console.log(paddingDays);
-  console.log(dateString);
-}
 
-function saveEvent() {
-  if (eventTitleInput.value) {
-    eventTitleInput.classList.remove("error");
-    events.push({
-      date: clicked,
-      title: eventTitleInput.value,
-    });
-
-    localStorage.setItem("events", JSON.stringify(events));
-    closeModal();
-  } else {
-    eventTitleInput.classList.add("error");
+  /* next month */
+  for (; dayDisplayed % 7 != 0; dayDisplayed++) {
+    const daySquare = document.createElement("div");
+    daySquare.classList.add("paddingDay");
+    daySquare.innerText = dayDisplayed % 7;
+    dayGrid.appendChild(daySquare);
   }
 }
 
-function closeModal() {
-  eventTitleInput.classList.remove("error");
-  newEventModal.style.display = "none";
-  deleteEventModal.style.display = "none";
-  backDrop.style.display = "none";
-  eventTitleInput.value = "";
-  clicked = null;
-  load();
-}
+// function saveEvent() {
+//   if (eventTitleInput.value) {
+//     eventTitleInput.classList.remove("error");
+//     events.push({
+//       date: clicked,
+//       title: eventTitleInput.value,
+//     });
 
-function deleteEvent() {
-  events = events.filter((e) => e.date !== clicked);
-  localStorage.setItem("events", JSON.stringify(events));
-  closeModal();
-}
+//     localStorage.setItem("events", JSON.stringify(events));
+//     closeModal();
+//   } else {
+//     eventTitleInput.classList.add("error");
+//   }
+// }
+
+// function closeModal() {
+//   eventTitleInput.classList.remove("error");
+//   newEventModal.style.display = "none";
+//   deleteEventModal.style.display = "none";
+//   backDrop.style.display = "none";
+//   eventTitleInput.value = "";
+//   clicked = null;
+//   load();
+// }
+
+// function deleteEvent() {
+//   events = events.filter((e) => e.date !== clicked);
+//   localStorage.setItem("events", JSON.stringify(events));
+//   closeModal();
+// }
 
 function initButtons() {
   document.getElementById("nextButton").addEventListener("click", () => {
@@ -257,13 +307,13 @@ function initButtons() {
 
   document.getElementById("loginButton").addEventListener("click", getToken);
 
-  document.getElementById("saveButton").addEventListener("click", saveEvent);
-  document.getElementById("cancelButton").addEventListener("click", closeModal);
+  // document.getElementById("saveButton").addEventListener("click", saveEvent);
+  // document.getElementById("cancelButton").addEventListener("click", closeModal);
 
-  document
-    .getElementById("deleteButton")
-    .addEventListener("click", deleteEvent);
-  document.getElementById("closeButton").addEventListener("click", closeModal);
+  // document
+  //   .getElementById("deleteButton")
+  //   .addEventListener("click", deleteEvent);
+  // document.getElementById("closeButton").addEventListener("click", closeModal);
 }
 
 initClient();
