@@ -292,14 +292,16 @@ function load() {
 function initButtons() {
   document.getElementById("nextButton").addEventListener("click", () => {
     nav++;
-    events = [];
+    dateTimeEvents = [];
+    dateEvents = [];
     updateDate();
     loadCalendar();
     load();
   });
   document.getElementById("backButton").addEventListener("click", () => {
     nav--;
-    events = [];
+    dateTimeEvents = [];
+    dateEvents = [];
     updateDate();
     loadCalendar();
     load();
